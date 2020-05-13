@@ -269,6 +269,8 @@ joy_db15 joy_db15
   .joystick2 ( JOYDB15_2 )	  
 );
 
+
+hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 (
 	.clk_sys(clk_sys),
 	.conf_str(CONF_STR),
