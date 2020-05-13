@@ -152,7 +152,7 @@ assign VIDEO_ARX = status[1] ? 8'd16 : 8'd4;
 assign VIDEO_ARY = status[1] ? 8'd9  : 8'd3;
 
 `include "build_id.v"
-localparam CONF_STR1 = {
+localparam CONF_STR = {
 	"ZX81;;",
 	"F,O  P  ,Load tape;",
 	"-;",
@@ -170,11 +170,8 @@ localparam CONF_STR1 = {
 	"O4,Model,ZX81,ZX80;",
 	"OHI,Slow mode speed,Original,NoWait,x2,x8;",
 	"OAB,Main RAM,16KB,32KB,48KB,1KB;",
-	"OG,Low RAM,Off,8KB;"
-};
-
-localparam CONF_STR2 = {
-	"EF,CHR$128/UDG,128 Chars,64 Chars,Disabled;",
+	"OG,Low RAM,Off,8KB;",
+	"D0OEF,CHR$128/UDG,128 Chars,64 Chars,Disabled;",
 	"OJ,QS CHRS,Enabled(F1),Disabled;",
 	"OK,CHROMA81,Disabled,Enabled;",
 	"O89,Joystick,Cursor,Sinclair,ZX81;",
@@ -235,6 +232,7 @@ wire  [4:0] joystick_1_USB;
 wire [31:0] status;
 
 wire        forced_scandoubler;
+wire [21:0] gamma_bus;
 
 // F4 F3 F2 F1 U D L R 
 wire [31:0] joystick_0 = joydb_1ena ? (OSD_STATUS? 32'b000000 : joydb_1[7:0]) : joystick_0_USB;
@@ -271,10 +269,9 @@ joy_db15 joy_db15
   .joystick2 ( JOYDB15_2 )	  
 );
 
-hps_io #(.STRLEN(($size(CONF_STR1)>>3) + 1 + ($size(CONF_STR2)>>3))) hps_io
 (
 	.clk_sys(clk_sys),
-	.conf_str({CONF_STR1, status[16] ? "O" : "+", CONF_STR2}),
+	.conf_str(CONF_STR),
 	.HPS_BUS(HPS_BUS),
 
 	.joy_raw(OSD_STATUS? (joydb_1[5:0]|joydb_2[5:0]) : 6'b000000 ),
@@ -286,7 +283,9 @@ hps_io #(.STRLEN(($size(CONF_STR1)>>3) + 1 + ($size(CONF_STR2)>>3))) hps_io
 
 	.buttons(buttons),
 	.status(status),
+	.status_menumask({~status[16]}), 
 	.forced_scandoubler(forced_scandoubler),
+	.gamma_bus(gamma_bus),
 
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
@@ -400,7 +399,7 @@ dpram #(.ADDRWIDTH(16)) ram
 wire [12:0] rom_a = nRFSH ? addr[12:0] : { addr[12:9]+(addr[13] & ram_data_latch[7] & addr[8] & ~status[14]), ram_data_latch[5:0], row_counter };
 wire        rom_e = ~addr[14] & ~addr[13] & (~addr[12] | zx81) & low16k_e;
 wire  [7:0] rom_out;
-dpram #(.ADDRWIDTH(14), .NUMWORDS(12288), .MEM_INIT_FILE("zx8x.mif")) rom
+dpram #(.ADDRWIDTH(14), .NUMWORDS(12288), .MEM_INIT_FILE("rtl/zx8x.mif")) rom
 (
 	.clock(clk_sys),
 	.address_a({(zx81 ? rom_a[12] : 2'h2), rom_a[11:0]}),
@@ -657,9 +656,10 @@ always @(posedge CLK_VIDEO) begin
 	if(~HSync & hsync2) VSync <= vsync2;
 end
  
-video_mixer #(400,1) video_mixer
+video_mixer #(400,1,1) video_mixer
 (
 	.*,
+	.clk_vid(CLK_VIDEO),
 	.ce_pix(ce_6m5),
 	.ce_pix_out(CE_PIXEL),
 
@@ -759,7 +759,7 @@ wire [7:0] psg_out;
 wire       psg_sel = ~nIORQ & &addr[3:0]; //xF
 wire [7:0] psg_ch_a, psg_ch_b, psg_ch_c;
 
-YM2149 psg
+ym2149 psg
 (
 	.CLK(clk_sys),
 	.CE(ce_psg),
