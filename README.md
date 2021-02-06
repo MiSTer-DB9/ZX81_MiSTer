@@ -1,14 +1,14 @@
-# ZX80/ZX81 for MISTer
+# [ZX80](https://en.wikipedia.org/wiki/ZX80) / [ZX81](https://en.wikipedia.org/wiki/ZX81) for MiSTer Platform
 
 Port of MiST version by Szombathelyi Gyorgy
 
 ### Features:
-- Based on Grant Searle's [ZX80 page](http://searle.hostei.com/grant/zx80/zx80.html)
+- Based on Grant Searle's [ZX80 page](http://searle.x10host.com/zx80/zx80.html)
 - Selectable ZX80/ZX81
 - 16k/32k/48k RAM packs
 - 8KB with CHR$128/UDG addon
 - QS CHRS (press F1 to enable/disable the alternative chars)
-- CHROMA81
+- [CHROMA81](http://www.fruitcake.plus.com/Sinclair/ZX81/Chroma/ChromaInterface.htm)
 - Turbo in Slow mode: NoWait, x2, x8
 - YM2149 sound chip (ZON X-81 compatible)
 - Joystick types: Cursor, Sinclar, ZX81, ZXpand
